@@ -27,6 +27,16 @@
             A inflation mesh layer, computing the inflation of the surface as cost layer.
         </description>
     </class>
+    <class name="mesh_layers/FreeSpanLayer"
+            type="mesh_layers::FreeSpanLayer"
+            base_class_type="mesh_map::AbstractLayer">
+        <description>
+            Free-space-span traversability (SE(2) NavMesh style, no yaw): voxelizes
+            the surface into vertical columns and derives walkability from headroom
+            (at least robot_height) and step connectivity (at most step_height),
+            keeping the main connected component. Robust to holes/noise/normals.
+        </description>
+    </class>
     <class name="mesh_layers/SteepnessLayer"
             type="mesh_layers::SteepnessLayer"
             base_class_type="mesh_map::AbstractLayer">

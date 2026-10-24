@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+    <name>se2_mesh_planner</name>
+    <version>0.1.0</version>
+    <description>SE(2) NavMesh Stage-1 cell-graph A* planner for mbf_mesh_nav</description>
+
+    <maintainer email="krishnakanthajith@gmail.com">Krishnakanth</maintainer>
+    <license>BSD-3-Clause</license>
+
+    <depend>rclcpp</depend>
+    <depend>mbf_mesh_core</depend>
+    <depend>mbf_msgs</depend>
+    <depend>mesh_map</depend>
+    <depend>free_span_core</depend>
+    <depend>pluginlib</depend>
+
+    <export>
+        <build_type>ament_cmake</build_type>
+    </export>
+</package>

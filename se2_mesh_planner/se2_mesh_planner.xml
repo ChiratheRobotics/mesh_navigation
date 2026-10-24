@@ -1,0 +1,9 @@
+<library path="se2_mesh_planner">
+    <class name="se2_mesh_planner/SE2MeshPlanner" type="se2_mesh_planner::SE2MeshPlanner"
+           base_class_type="mbf_mesh_core::MeshPlanner">
+        <description>
+            SE(2) NavMesh Stage-1 planner: A star on the free-span cell graph with a
+            lateral-clearance centering cost, for mbf_mesh_nav.
+        </description>
+    </class>
+</library>

@@ -121,44 +121,32 @@ float ClearanceLayer::threshold()
 
 bool ClearanceLayer::computeLayer()
 {
-  RCLCPP_INFO(get_logger(), "Computing clearance along vertex normals...");
+  RCLCPP_INFO(get_logger(), "Computing vertical (+z, gravity-aligned) headroom clearance...");
   const auto map = map_ptr_.lock();
+  const auto mesh = map->mesh();
 
-  // Load vertex normals
+  // Cast the clearance ray straight UP (+z / gravity), NOT along the surface
+  // normal. For a ground/legged robot headroom is vertical; casting along a
+  // tilted stair-tread normal hits the next step (t ~= run/sin(theta) < h_robot)
+  // and wrongly marks the whole staircase lethal, and it is also corrupted by
+  // inconsistent normal orientation. (Cf. SE(2) NavMesh: walkability uses
+  // free-space spans along gravity.) We therefore feed a constant up-vector.
   using VertexNormalMap = lvr2::DenseVertexMap<mesh_map::Normal>;
-  VertexNormalMap vertex_normals;
-  auto vertex_normals_opt = map->meshIO()->getDenseAttributeMap<VertexNormalMap>("vertex_normals");
-
-  if (vertex_normals_opt)
+  VertexNormalMap up_normals;
+  up_normals.reserve(mesh->nextVertexIndex());
+  const mesh_map::Normal up(0.0f, 0.0f, 1.0f);
+  for (size_t i = 0; i < mesh->nextVertexIndex(); i++)
   {
-    RCLCPP_INFO(get_logger(), "Using vertex normals from map file");
-    vertex_normals = vertex_normals_opt.value();
-  }
-  else
-  {
-    RCLCPP_INFO(get_logger(), "No vertex normals in map file!");
-
-    // Load or calculate face normals
-    using FaceNormalMap = lvr2::DenseFaceMap<mesh_map::Normal>;
-    FaceNormalMap face_normals;
-    auto face_normals_opt = map->meshIO()->getDenseAttributeMap<FaceNormalMap>("face_normals");
-    if (face_normals_opt)
+    auto vH = lvr2::VertexHandle(i);
+    if (!mesh->containsVertex(vH))
     {
-      RCLCPP_INFO(get_logger(), "Using face normals from map file");
-      face_normals = face_normals_opt.value();
+      continue;
     }
-    else
-    {
-      RCLCPP_INFO(get_logger(), "Calculating face normals");
-      face_normals = lvr2::calcFaceNormals(*map->mesh());
-    }
-
-    RCLCPP_INFO(get_logger(), "Calculating vertex normals");
-    VertexNormalMap vertex_normals = lvr2::calcVertexNormals(*map->mesh(), face_normals);
+    up_normals.insert(vH, up);
   }
 
-  // Finally calculate the clearance layer
-  clearance_ = lvr2::calcNormalClearance(*map->mesh(), vertex_normals);
+  // Finally calculate the clearance layer (vertical free space above each vertex)
+  clearance_ = lvr2::calcNormalClearance(*mesh, up_normals);
 
   return computeLethalsAndCosts();
 }

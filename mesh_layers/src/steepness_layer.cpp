@@ -162,7 +162,15 @@ bool SteepnessLayer::computeLayer()
       continue;
     }
 
-    steepness_.insert(vH, acos(vertex_normals[vH].z));
+    // Use the slope MAGNITUDE: acos(|nz|), not acos(nz). mesh_map's recomputed
+    // vertex normals are not consistently oriented (on this mesh ~49% of the
+    // floor-2 normals point downward), so acos(nz) wrongly reports flat floor as
+    // ~90deg (lethal). The physical steepness is orientation-independent — a flat
+    // surface is flat whichever way its normal was computed.
+    float nz = vertex_normals[vH].z;
+    if (nz < 0.0f) nz = -nz;
+    if (nz > 1.0f) nz = 1.0f;
+    steepness_.insert(vH, acos(nz));
   }
 
   return computeLethals();
